@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contáctanos | Nebula</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="/pages/profile.html"><span class="brand__star">✦</span><span>Nebula</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" data-match="profile" href="/pages/profile.html">Usuario</a>
+          <a class="nav-link" data-match="jobs" href="/pages/jobs.html">Bolsa de trabajo</a>
+          <a class="nav-link" data-match="about" href="/pages/about.html">Acerca de nosotros</a>
+          <a class="nav-link" data-match="contact" href="/pages/contact.html">Comunícate con nosotros</a>
+          <a class="nav-link" data-match="support" href="/pages/support.html">Atención al cliente</a>
+          <button class="nav-link logout js-logout">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="page-header">
+        <h1>Contáctanos</h1>
+        <p>Estamos aquí para ayudarte</p>
+      </section>
+      <section class="contact-grid">
+        <div class="info-stack">
+          <article class="card contact-card"><h3>Email</h3><p id="contactEmail" class="job-desc"></p></article>
+          <article class="card contact-card"><h3>Teléfono</h3><p id="contactPhone" class="job-desc"></p></article>
+          <article class="card contact-card"><h3>Oficina</h3><p id="contactAddress" class="job-desc"></p></article>
+        </div>
+        <article class="card section-card">
+          <h2>Envíanos un mensaje</h2>
+          <form id="contactForm" class="form-grid">
+            <div class="form-grid form-grid--2">
+              <div class="field"><label>Nombre completo *</label><input class="input" name="nombre" required /></div>
+              <div class="field"><label>Email *</label><input class="input" name="email" type="email" required /></div>
+            </div>
+            <div class="field"><label>Asunto *</label><input class="input" name="asunto" required /></div>
+            <div class="field"><label>Mensaje *</label><textarea class="textarea" name="mensaje" required></textarea></div>
+            <div id="contactMessage" class="small"></div>
+            <button class="btn btn-primary" type="submit">Enviar mensaje</button>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { api, ensureAuth, bindLogout, setActiveNav, $, toast } = window.Nebula;
+    $('#contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      toast($('#contactMessage'), 'Formulario demo listo. Puedes conectar este formulario a correo o WhatsApp.', 'success');
+      e.currentTarget.reset();
+    });
+    (async () => {
+      const user = await ensureAuth(['postulante']);
+      if (!user) return;
+      bindLogout();
+      setActiveNav();
+      const content = await api('/api/content');
+      $('#contactEmail').textContent = content.correo_contacto || 'contacto@nebula.com';
+      $('#contactPhone').textContent = content.numero_telefono || '+52 55 1234 5678';
+      $('#contactAddress').textContent = content.direccion || 'Ciudad de México';
+    })();
+  </script>
+</body>
+</html>

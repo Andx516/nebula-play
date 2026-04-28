@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acerca de Nebula</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="/pages/profile.html"><span class="brand__star">✦</span><span>Nebula</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" data-match="profile" href="/pages/profile.html">Usuario</a>
+          <a class="nav-link" data-match="jobs" href="/pages/jobs.html">Bolsa de trabajo</a>
+          <a class="nav-link" data-match="about" href="/pages/about.html">Acerca de nosotros</a>
+          <a class="nav-link" data-match="contact" href="/pages/contact.html">Comunícate con nosotros</a>
+          <a class="nav-link" data-match="support" href="/pages/support.html">Atención al cliente</a>
+          <button class="nav-link logout js-logout">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="page-header">
+        <h1>Acerca de Nebula</h1>
+        <p>Conectando talento con oportunidades desde 2024</p>
+      </section>
+
+      <section class="card section-card"><h2>Nuestra Misión</h2><p id="missionText" class="job-desc"></p></section>
+      <section class="card section-card"><h2>Nuestra Visión</h2><p id="visionText" class="job-desc"></p></section>
+
+      <section class="jobs-grid">
+        <article class="card section-card"><h3 id="v1Title"></h3><p id="v1Desc" class="job-desc"></p></article>
+        <article class="card section-card"><h3 id="v2Title"></h3><p id="v2Desc" class="job-desc"></p></article>
+        <article class="card section-card"><h3 id="v3Title"></h3><p id="v3Desc" class="job-desc"></p></article>
+        <article class="card section-card"><h3 id="v4Title"></h3><p id="v4Desc" class="job-desc"></p></article>
+      </section>
+
+      <section class="card section-card">
+        <h2>Datos informativos</h2>
+        <p id="infoText" class="job-desc"></p>
+      </section>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { api, ensureAuth, bindLogout, setActiveNav, $ } = window.Nebula;
+    (async () => {
+      const user = await ensureAuth(['postulante']);
+      if (!user) return;
+      bindLogout();
+      setActiveNav();
+      const content = await api('/api/content');
+      $('#missionText').textContent = content.mision;
+      $('#visionText').textContent = content.vision;
+      $('#v1Title').textContent = content.valor1_titulo;
+      $('#v1Desc').textContent = content.valor1_descripcion;
+      $('#v2Title').textContent = content.valor2_titulo;
+      $('#v2Desc').textContent = content.valor2_descripcion;
+      $('#v3Title').textContent = content.valor3_titulo;
+      $('#v3Desc').textContent = content.valor3_descripcion;
+      $('#v4Title').textContent = content.valor4_titulo;
+      $('#v4Desc').textContent = content.valor4_descripcion;
+      $('#infoText').textContent = content.datos_informativos;
+    })();
+  </script>
+</body>
+</html>

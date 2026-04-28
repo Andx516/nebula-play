@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bolsa de Trabajo | Nebula</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="/pages/profile.html"><span class="brand__star">✦</span><span>Nebula</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" data-match="profile" href="/pages/profile.html">Usuario</a>
+          <a class="nav-link" data-match="jobs" href="/pages/jobs.html">Bolsa de trabajo</a>
+          <a class="nav-link" data-match="about" href="/pages/about.html">Acerca de nosotros</a>
+          <a class="nav-link" data-match="contact" href="/pages/contact.html">Comunícate con nosotros</a>
+          <a class="nav-link" data-match="support" href="/pages/support.html">Atención al cliente</a>
+          <button class="nav-link logout js-logout">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="page-header">
+        <h1>Bolsa de Trabajo</h1>
+        <p>Encuentra tu próxima oportunidad profesional</p>
+      </section>
+
+      <section class="jobs-toolbar">
+        <input id="jobSearch" class="input" placeholder="Buscar por título, empresa o palabras clave..." />
+        <div class="small muted" style="margin-top:12px;" id="jobCount"></div>
+      </section>
+
+      <section id="jobsGrid" class="jobs-grid"></section>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { $, api, ensureAuth, bindLogout, setActiveNav } = window.Nebula;
+    let jobs = [];
+
+    function renderJobs(data) {
+      $('#jobCount').textContent = `${data.length} vacantes encontradas`;
+      $('#jobsGrid').innerHTML = data.map((job) => `
+        <article class="card job-card">
+          <div class="job-meta">${job.empresa}</div>
+          <h3>${job.titulo}</h3>
+          <p class="job-desc">${job.descripcion}</p>
+          <button class="btn btn-primary" data-job="${job.id_vacante}">Ver vacante</button>
+        </article>
+      `).join('') || '<div class="upload-box">No se encontraron vacantes.</div>';
+      document.querySelectorAll('[data-job]').forEach((btn) => btn.addEventListener('click', () => {
+        window.location.href = `/pages/job.html?id=${btn.dataset.job}`;
+      }));
+    }
+
+    async function loadJobs(query = '') {
+      jobs = await api(`/api/jobs?q=${encodeURIComponent(query)}`);
+      renderJobs(jobs);
+    }
+
+    $('#jobSearch').addEventListener('input', (event) => loadJobs(event.target.value));
+
+    (async () => {
+      const user = await ensureAuth(['postulante']);
+      if (!user) return;
+      bindLogout();
+      setActiveNav();
+      await loadJobs();
+    })();
+  </script>
+</body>
+</html>

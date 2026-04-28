@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalle de Vacante | Nebula</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="/pages/profile.html"><span class="brand__star">✦</span><span>Nebula</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" data-match="profile" href="/pages/profile.html">Usuario</a>
+          <a class="nav-link" data-match="jobs" href="/pages/jobs.html">Bolsa de trabajo</a>
+          <a class="nav-link" data-match="about" href="/pages/about.html">Acerca de nosotros</a>
+          <a class="nav-link" data-match="contact" href="/pages/contact.html">Comunícate con nosotros</a>
+          <a class="nav-link" data-match="support" href="/pages/support.html">Atención al cliente</a>
+          <button class="nav-link logout js-logout">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <a class="back-link" href="/pages/jobs.html"><span>←</span><span>Volver</span></a>
+      <section class="page-header">
+        <h1 id="jobTitle">Vacante</h1>
+        <p id="jobCompany">Empresa</p>
+      </section>
+
+      <section class="job-detail-grid">
+        <article class="card section-card">
+          <div class="job-image"><img id="jobImage" alt="Vacante" /></div>
+          <p id="jobDescription" class="job-desc" style="margin-top:18px;"></p>
+          <h3>Información de la empresa</h3>
+          <div id="companyInfo" class="table-list"></div>
+        </article>
+
+        <aside class="card section-card">
+          <h2 class="section-title">Postularme</h2>
+          <div class="field">
+            <label for="cvSelect">Selecciona un CV</label>
+            <select id="cvSelect" class="select"></select>
+          </div>
+          <div class="notice" id="matchBox">Selecciona un CV para ver compatibilidad estimada.</div>
+          <div id="applyMessage" class="small"></div>
+          <div class="inline-actions" style="margin-top:16px;">
+            <button id="checkMatchBtn" class="btn btn-secondary">Calcular compatibilidad</button>
+            <button id="applyBtn" class="btn btn-primary">Enviar postulación</button>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { $, api, ensureAuth, bindLogout, setActiveNav, toast } = window.Nebula;
+    const vacancyId = new URLSearchParams(window.location.search).get('id');
+
+    async function loadCvOptions() {
+      const cvs = await api('/api/candidate/cvs');
+      $('#cvSelect').innerHTML = cvs.length
+        ? ['<option value="">Selecciona tu CV</option>'].concat(cvs.map((cv) => `<option value="${cv.id_curriculum}">${cv.titulo}</option>`)).join('')
+        : '<option value="">No tienes CVs cargados</option>';
+    }
+
+    async function loadVacancy() {
+      const data = await api(`/api/jobs/${vacancyId}`);
+      $('#jobTitle').textContent = data.titulo;
+      $('#jobCompany').textContent = data.empresa;
+      $('#jobImage').src = data.imagen_url;
+      $('#jobDescription').textContent = data.descripcion;
+      $('#companyInfo').innerHTML = `
+        <article class="row"><div class="row__main"><strong>Descripción</strong><div class="small muted">${data.empresa_info.descripcion || 'Sin información.'}</div></div></article>
+        <article class="row"><div class="row__main"><strong>Misión</strong><div class="small muted">${data.empresa_info.mision || 'Sin información.'}</div></div></article>
+        <article class="row"><div class="row__main"><strong>Visión</strong><div class="small muted">${data.empresa_info.vision || 'Sin información.'}</div></div></article>
+        <article class="row"><div class="row__main"><strong>Clientes</strong><div class="small muted">${data.empresa_info.clientes || 'Sin información.'}</div></div></article>
+        <article class="row"><div class="row__main"><strong>Sedes</strong><div class="small muted">${data.empresa_info.sedes || 'Sin información.'}</div></div></article>
+      `;
+    }
+
+    $('#checkMatchBtn').addEventListener('click', async () => {
+      const id_curriculum = $('#cvSelect').value;
+      if (!id_curriculum) return toast($('#applyMessage'), 'Primero selecciona un CV.', 'error');
+      const result = await api(`/api/jobs/${vacancyId}/match?id_curriculum=${id_curriculum}`);
+      $('#matchBox').textContent = `${result.label}: ${result.score}%`;
+    });
+
+    $('#applyBtn').addEventListener('click', async () => {
+      const id_curriculum = $('#cvSelect').value;
+      if (!id_curriculum) return toast($('#applyMessage'), 'Selecciona un CV para postularte.', 'error');
+      try {
+        const result = await api(`/api/jobs/${vacancyId}/apply`, { method: 'POST', body: JSON.stringify({ id_curriculum }) });
+        toast($('#applyMessage'), result.message, 'success');
+      } catch (error) {
+        toast($('#applyMessage'), error.message, 'error');
+      }
+    });
+
+    (async () => {
+      const user = await ensureAuth(['postulante']);
+      if (!user) return;
+      bindLogout();
+      setActiveNav();
+      await Promise.all([loadVacancy(), loadCvOptions()]);
+    })();
+  </script>
+</body>
+</html>

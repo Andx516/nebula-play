@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Centro de Ayuda | Nebula</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="/pages/profile.html"><span class="brand__star">✦</span><span>Nebula</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" data-match="profile" href="/pages/profile.html">Usuario</a>
+          <a class="nav-link" data-match="jobs" href="/pages/jobs.html">Bolsa de trabajo</a>
+          <a class="nav-link" data-match="about" href="/pages/about.html">Acerca de nosotros</a>
+          <a class="nav-link" data-match="contact" href="/pages/contact.html">Comunícate con nosotros</a>
+          <a class="nav-link" data-match="support" href="/pages/support.html">Atención al cliente</a>
+          <button class="nav-link logout js-logout">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="page-header"><h1>Centro de Ayuda</h1><p>Encuentra respuestas a tus preguntas</p></section>
+      <section class="support-grid">
+        <article class="card section-card"><h3>Correo</h3><p id="supportEmail" class="job-desc"></p></article>
+        <article class="card section-card"><h3>Teléfono</h3><p id="supportPhone" class="job-desc"></p></article>
+        <article class="card section-card"><h3>Videollamada</h3><p id="supportVideo" class="job-desc"></p></article>
+      </section>
+      <section class="card section-card">
+        <h2>Preguntas frecuentes</h2>
+        <div id="faqList">
+          <article class="faq-item"><div class="faq-q">¿Cómo creo una cuenta en Nebula?<span>▾</span></div><div class="faq-a">En la pantalla principal puedes elegir registro de usuario o registro de empresa según tu perfil.</div></article>
+          <article class="faq-item"><div class="faq-q">¿Cómo puedo postularme a una vacante?<span>▾</span></div><div class="faq-a">Entra a Bolsa de trabajo, abre una vacante, selecciona un CV y confirma la postulación.</div></article>
+          <article class="faq-item"><div class="faq-q">¿Puedo editar mi perfil después?<span>▾</span></div><div class="faq-a">Sí. Desde el apartado Usuario puedes modificar tus datos principales.</div></article>
+          <article class="faq-item"><div class="faq-q">¿Nebula cobra por usar la plataforma?<span>▾</span></div><div class="faq-a">Para postulantes no. Las empresas pueden integrarse con planes y servicios de reclutamiento.</div></article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    const { api, ensureAuth, bindLogout, setActiveNav, $, $$ } = window.Nebula;
+    (async () => {
+      const user = await ensureAuth(['postulante']);
+      if (!user) return;
+      bindLogout();
+      setActiveNav();
+      const content = await api('/api/content');
+      $('#supportEmail').textContent = content.correo_contacto || 'contacto@nebula.com';
+      $('#supportPhone').textContent = `${content.numero_telefono || '+52 55 1234 5678'} · ${content.leyenda_telefono || ''}`;
+      $('#supportVideo').innerHTML = `<a class="btn btn-secondary" href="${content.whatsapp_chat_link || '#'}" target="_blank">Solicitar videollamada por WhatsApp</a><p class="small muted">${content.leyenda_videollamadas || ''}</p>`;
+      $$('.faq-item').forEach((item) => item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open')));
+    })();
+  </script>
+</body>
+</html>
